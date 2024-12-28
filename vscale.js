@@ -48,10 +48,17 @@ class VScale {
 
     push();
     textSize(labelTextSize);
-    textAlign(LEFT, CENTER);
+    textAlign(this.circularMode ? CENTER : LEFT, CENTER);
     fill(0);
     noStroke();
-    text(`${this.scale.type} - ${this.scale.mode}`, this.startX + this.size * 0.1, this.startY - this.size / 2 - labelTextSize);
+    let labelX = this.circularMode ? this.startX : this.startX;
+    let labelY = this.circularMode ? this.startY : this.startY - this.size / 2 - labelTextSize;
+    if (this.circularMode) {
+      text(this.scale.type, labelX, labelY - labelTextSize / 2);
+      text(this.scale.mode, labelX, labelY + labelTextSize / 2);
+    } else {
+      text(`${this.scale.type} - ${this.scale.mode}`, labelX, labelY);
+    }
     pop();
 
     this.bubblePositions = [];
@@ -104,13 +111,14 @@ class VScale {
   }
 
   startDrag(x, y) {
-    this.bubblePositions.forEach((pos, index) => {
-      if (dist(x, y, pos.x, pos.y) < this.size / 2) {
-        this.dragging = true;
-        this.offsetX = x - this.startX;
-        this.offsetY = y - this.startY;
-      }
-    });
+    let tonicPosition = this.bubblePositions[0];
+    let labelX = this.circularMode ? this.startX : this.startX;
+    let labelY = this.circularMode ? this.startY : this.startY - this.size / 2 - this.size * 0.36;
+    if (dist(x, y, tonicPosition.x, tonicPosition.y) < this.size / 2 || dist(x, y, labelX, labelY) < this.size / 2) {
+      this.dragging = true;
+      this.offsetX = x - this.startX;
+      this.offsetY = y - this.startY;
+    }
   }
 
   drag(x, y) {
