@@ -15,6 +15,7 @@ class VScale {
     this.previousMode = false; // Ajouter une variable pour suivre l'état précédent
     this.appearing = true; // Ajouter une variable pour l'animation d'apparition
     this.appearanceProgress = 0; // Ajouter une variable pour suivre la progression de l'apparition
+    this.displayMode = 'degrees'; // Ajouter une variable pour suivre le mode d'affichage
   }
 
   createBubbles() {
@@ -23,7 +24,9 @@ class VScale {
       let isInScale = this.scale.semitones.includes(i);
       let bubbleColor = isInScale ? color(i * 30, 70, 100) : color(200);
       let degree = isInScale ? this.scale.degrees[this.scale.semitones.indexOf(i)] : '';
-      bubbles.push({ position: i, color: bubbleColor, degree: degree, isInScale: isInScale });
+      let interval = isInScale ? this.scale.intervals[this.scale.semitones.indexOf(i)] : '';
+      let triad = isInScale ? this.scale.triads[this.scale.semitones.indexOf(i)] : '';
+      bubbles.push({ position: i, color: bubbleColor, degree: degree, interval: interval, triad: triad, isInScale: isInScale });
     }
     return bubbles;
   }
@@ -88,7 +91,13 @@ class VScale {
       noStroke();
       textSize(textSizeInBubble); // Taille du texte dans les bulles
       textAlign(CENTER, CENTER);
-      text(bubble.degree, x, y);
+      let textToDisplay = bubble.degree;
+      if (this.displayMode === 'intervals') {
+        textToDisplay = bubble.interval;
+      } else if (this.displayMode === 'triads') {
+        textToDisplay = bubble.triad;
+      }
+      text(textToDisplay, x, y);
       pop();
     });
 
@@ -136,6 +145,16 @@ class VScale {
     this.transitioning = true;
     this.transitionProgress = 0;
     this.previousMode = this.circularMode; // Mettre à jour l'état précédent
+  }
+
+  toggleDisplayMode() {
+    if (this.displayMode === 'degrees') {
+      this.displayMode = 'intervals';
+    } else if (this.displayMode === 'intervals') {
+      this.displayMode = 'triads';
+    } else {
+      this.displayMode = 'degrees';
+    }
   }
 }
 

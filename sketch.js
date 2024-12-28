@@ -198,5 +198,13 @@ function keyPressed() {
       }
     });
     redraw();
+  } else if (key === 'd' || key === 'D') {
+    vScales.forEach(vScale => {
+      if (typeof vScale.toggleDisplayMode === 'function') {
+        vScale.toggleDisplayMode();
+        console.log(vScale.displayMode);
+      }
+    });
+    redraw();
   }
 }
