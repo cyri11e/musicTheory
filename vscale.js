@@ -23,9 +23,9 @@ class VScale {
     for (let i = 0; i < 12; i++) {
       let isInScale = this.scale.semitones.includes(i);
       let bubbleColor = isInScale ? color(i * 30, 70, 100) : color(200);
-      let degree = isInScale ? this.scale.degrees[this.scale.semitones.indexOf(i)] : '';
-      let interval = isInScale ? this.scale.intervals[this.scale.semitones.indexOf(i)] : '';
-      let triad = isInScale ? this.scale.triads[this.scale.semitones.indexOf(i)] : '';
+      let degree = isInScale && this.scale.degrees ? this.scale.degrees[this.scale.semitones.indexOf(i)] : '';
+      let interval = isInScale && this.scale.intervals ? this.scale.intervals[this.scale.semitones.indexOf(i)] : '';
+      let triad = isInScale && this.scale.triads ? this.scale.triads[this.scale.semitones.indexOf(i)] : degree; // Utiliser les degrés diatoniques si triads n'existe pas
       bubbles.push({ position: i, color: bubbleColor, degree: degree, interval: interval, triad: triad, isInScale: isInScale });
     }
     return bubbles;

@@ -1,5 +1,7 @@
 let scaleList = [];
 let vScales = [];
+let chords = [];
+let vChords = [];
 
 function setup() {
   createCanvas(800, 600);
@@ -15,7 +17,10 @@ function setup() {
   vScales.push(vScale);
   vScale.draw();
 
-  createContextMenu();
+  document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+    showContextMenu(e.pageX, e.pageY);
+  });
 }
 
 function drawHSBGradient(x, y, w, h) {
@@ -26,14 +31,89 @@ function drawHSBGradient(x, y, w, h) {
   }
 }
 
-function createContextMenu() {
+function showContextMenu(x, y) {
   const menu = document.createElement('div');
-  menu.id = 'context-menu';
   menu.style.position = 'absolute';
-  menu.style.display = 'none';
+  menu.style.left = x + 'px';
+  menu.style.top = y + 'px';
   menu.style.backgroundColor = '#fff';
   menu.style.border = '1px solid #ccc';
+  menu.style.padding = '5px';
   menu.style.zIndex = '1000';
+
+  const chordTypes = {
+    'Triades': ['major', 'minor', 'diminished', 'augmented'],
+    'Tétrades': ['major7', 'minor7', 'dominant7', 'diminished7', 'halfDiminished7', 'minorMajor7', 'augmented7'],
+    'Autres': ['sus2', 'sus4', '7sus4', 'add9', 'madd9']
+  };
+
+  const newChordItem = document.createElement('div');
+  newChordItem.textContent = 'Nouvel accord';
+  newChordItem.style.position = 'relative';
+  newChordItem.style.padding = '5px';
+  newChordItem.style.cursor = 'pointer';
+
+  const chordSubMenu = document.createElement('div');
+  chordSubMenu.style.display = 'none';
+  chordSubMenu.style.position = 'absolute';
+  chordSubMenu.style.left = '100%';
+  chordSubMenu.style.top = '0';
+  chordSubMenu.style.backgroundColor = '#fff';
+  chordSubMenu.style.border = '1px solid #ccc';
+
+  for (const [category, types] of Object.entries(chordTypes)) {
+    const categoryItem = document.createElement('div');
+    categoryItem.textContent = category;
+    categoryItem.style.padding = '5px';
+    categoryItem.style.cursor = 'pointer';
+    categoryItem.style.position = 'relative';
+
+    const typeSubMenu = document.createElement('div');
+    typeSubMenu.style.display = 'none';
+    typeSubMenu.style.position = 'absolute';
+    typeSubMenu.style.left = '100%';
+    typeSubMenu.style.top = '0';
+    typeSubMenu.style.backgroundColor = '#fff';
+    typeSubMenu.style.border = '1px solid #ccc';
+
+    types.forEach(type => {
+      const typeItem = document.createElement('div');
+      typeItem.textContent = type;
+      typeItem.style.padding = '5px';
+      typeItem.style.cursor = 'pointer';
+      typeItem.onclick = () => {
+        let chord = new Chord(type);
+        let vScale = new VScale(chord); // Utiliser VScale pour afficher l'accord
+        vScale.startX = x;
+        vScale.startY = y;
+        chords.push(chord);
+        vScales.push(vScale);
+        redraw();
+        document.body.removeChild(menu);
+      };
+      typeSubMenu.appendChild(typeItem);
+    });
+
+    categoryItem.onmouseover = () => {
+      typeSubMenu.style.display = 'block';
+    };
+    categoryItem.onmouseout = () => {
+      typeSubMenu.style.display = 'none';
+    };
+
+    categoryItem.appendChild(typeSubMenu);
+    chordSubMenu.appendChild(categoryItem);
+  }
+
+  newChordItem.onmouseover = () => {
+    chordSubMenu.style.display = 'block';
+  };
+  newChordItem.onmouseout = () => {
+    chordSubMenu.style.display = 'none';
+  };
+
+  newChordItem.appendChild(chordSubMenu);
+  menu.appendChild(newChordItem);
 
   const scales = {
     'Major': ['ionian', 'dorian', 'phrygian', 'lydian', 'mixolydian', 'aeolian', 'locrian'],
@@ -61,11 +141,11 @@ function createContextMenu() {
       modeItem.style.padding = '5px';
       modeItem.style.cursor = 'pointer';
       modeItem.onclick = () => {
-        let startX = mouseX;
-        let startY = mouseY;
-        let isOverScale = vScales.some(vScale => mouseX > vScale.startX && mouseX < vScale.startX + 12 * 40 && mouseY > vScale.startY - 20 && mouseY < vScale.startY + 20);
+        let startX = x;
+        let startY = y;
+        let isOverScale = vScales.some(vScale => x > vScale.startX && x < vScale.startX + 12 * 40 && y > vScale.startY - 20 && y < vScale.startY + 20);
         if (isOverScale) {
-          let vScale = vScales.find(vScale => mouseX > vScale.startX && mouseX < vScale.startX + 12 * 40 && mouseY > vScale.startY - 20 && mouseY < vScale.startY + 20);
+          let vScale = vScales.find(vScale => x > vScale.startX && x < vScale.startX + 12 * 40 && y > vScale.startY - 20 && y < vScale.startY + 20);
           vScale.scale = new Scale(scaleType, mode);
           vScale.bubbles = vScale.createBubbles();
         } else {
@@ -77,7 +157,7 @@ function createContextMenu() {
           vScales.push(vScale);
         }
         redraw();
-        menu.style.display = 'none';
+        document.body.removeChild(menu);
       };
       modeMenu.appendChild(modeItem);
     });
@@ -95,75 +175,10 @@ function createContextMenu() {
 
   document.body.appendChild(menu);
 
-  window.oncontextmenu = (e) => {
-    e.preventDefault();
-    menu.innerHTML = ''; // Clear previous menu items
-
-    let isOverScale = vScales.some(vScale => e.pageX > vScale.startX && e.pageX < vScale.startX + 12 * 40 && e.pageY > vScale.startY - 20 && e.pageY < vScale.startY + 20);
-    const actionItem = document.createElement('div');
-    actionItem.textContent = isOverScale ? 'Modifier' : 'Nouveau';
-    actionItem.style.padding = '5px';
-    actionItem.style.cursor = 'pointer';
-    menu.appendChild(actionItem);
-
-    for (const [scaleType, modes] of Object.entries(scales)) {
-      const scaleItem = document.createElement('div');
-      scaleItem.textContent = scaleType;
-      scaleItem.style.padding = '5px';
-      scaleItem.style.cursor = 'pointer';
-
-      const modeMenu = document.createElement('div');
-      modeMenu.style.display = 'none';
-      modeMenu.style.position = 'absolute';
-      modeMenu.style.left = '100%';
-      modeMenu.style.top = '0';
-      modeMenu.style.backgroundColor = '#fff';
-      modeMenu.style.border = '1px solid #ccc';
-
-      modes.forEach(mode => {
-        const modeItem = document.createElement('div');
-        modeItem.textContent = mode;
-        modeItem.style.padding = '5px';
-        modeItem.style.cursor = 'pointer';
-        modeItem.onclick = () => {
-          let startX = e.pageX;
-          let startY = e.pageY;
-          if (isOverScale) {
-            let vScale = vScales.find(vScale => e.pageX > vScale.startX && e.pageX < vScale.startX + 12 * 40 && e.pageY > vScale.startY - 20 && e.pageY < vScale.startY + 20);
-            vScale.scale = new Scale(scaleType, mode);
-            vScale.bubbles = vScale.createBubbles();
-          } else {
-            let scale = new Scale(scaleType, mode);
-            let vScale = new VScale(scale);
-            vScale.startX = startX;
-            vScale.startY = startY;
-            scaleList.push(scale);
-            vScales.push(vScale);
-          }
-          redraw();
-          menu.style.display = 'none';
-        };
-        modeMenu.appendChild(modeItem);
-      });
-
-      scaleItem.onmouseover = () => {
-        modeMenu.style.display = 'block';
-      };
-      scaleItem.onmouseout = () => {
-        modeMenu.style.display = 'none';
-      };
-
-      scaleItem.appendChild(modeMenu);
-      menu.appendChild(scaleItem);
-    }
-
-    menu.style.left = `${e.pageX}px`;
-    menu.style.top = `${e.pageY}px`;
-    menu.style.display = 'block';
-  };
-
   window.onclick = () => {
-    menu.style.display = 'none';
+    if (menu.parentNode === document.body) {
+      document.body.removeChild(menu);
+    }
   };
 }
 
