@@ -186,3 +186,15 @@ function mouseDragged() {
 function mouseReleased() {
   vScales.forEach(vScale => vScale.stopDrag());
 }
+
+function keyPressed() {
+  if (key === 'c' || key === 'C') {
+    vScales.forEach(vScale => {
+      if (typeof vScale.toggleMode === 'function') {
+        vScale.toggleMode();
+        console.log(vScale.circularMode);
+      }
+    });
+    redraw();
+  }
+}

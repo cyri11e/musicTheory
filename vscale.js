@@ -8,6 +8,8 @@ class VScale {
     this.offsetY = 0;
     this.startX = 50;
     this.startY = 300;
+    this.circularMode = false;
+    this.bubblePositions = [];
   }
 
   createBubbles() {
@@ -19,6 +21,20 @@ class VScale {
       bubbles.push({ position: i, color: bubbleColor, degree: degree, isInScale: isInScale });
     }
     return bubbles;
+  }
+
+  calculateBubblePosition(index) {
+    if (this.circularMode) {
+      let angle = TWO_PI * ((index + 9) % 12 / 12); // Placer la tonique en haut
+      let radius = this.size * 6 / PI; // Ajuster le rayon pour que les bulles se touchent
+      let x = this.startX + cos(angle) * radius;
+      let y = this.startY + sin(angle) * radius;
+      return { x, y };
+    } else {
+      let x = this.startX + index * this.size;
+      let y = this.startY;
+      return { x, y };
+    }
   }
 
   draw() {
@@ -33,26 +49,31 @@ class VScale {
     text(`${this.scale.type} - ${this.scale.mode}`, this.startX + this.size * 0.1, this.startY - this.size / 2 - labelTextSize);
     pop();
 
+    this.bubblePositions = [];
     this.bubbles.forEach((bubble, index) => {
+      let { x, y } = this.calculateBubblePosition(index);
+      this.bubblePositions.push({ x, y });
       push();
       fill(bubble.color);
       stroke(0); // Contour noir
-      ellipse(this.startX + index * this.size, this.startY, this.size, this.size);
+      ellipse(x, y, this.size, this.size);
       fill(0);
       noStroke();
       textSize(textSizeInBubble); // Taille du texte dans les bulles
       textAlign(CENTER, CENTER);
-      text(bubble.degree, this.startX + index * this.size, this.startY);
+      text(bubble.degree, x, y);
       pop();
     });
   }
 
   startDrag(x, y) {
-    if (x > this.startX && x < this.startX + 12 * this.size && y > this.startY - this.size / 2 && y < this.startY + this.size / 2) {
-      this.dragging = true;
-      this.offsetX = x - this.startX;
-      this.offsetY = y - this.startY;
-    }
+    this.bubblePositions.forEach((pos, index) => {
+      if (dist(x, y, pos.x, pos.y) < this.size / 2) {
+        this.dragging = true;
+        this.offsetX = x - this.startX;
+        this.offsetY = y - this.startY;
+      }
+    });
   }
 
   drag(x, y) {
@@ -64,6 +85,10 @@ class VScale {
 
   stopDrag() {
     this.dragging = false;
+  }
+
+  toggleMode() {
+    this.circularMode = !this.circularMode;
   }
 }
 
