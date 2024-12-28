@@ -1,0 +1,18 @@
+html, body {
+  margin: 0;
+  padding: 0;
+}
+canvas {
+  display: block;
+}
+#context-menu {
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+}
+#context-menu div {
+  padding: 5px;
+  cursor: pointer;
+}
+#context-menu div:hover {
+  background-color: #eee;
+}
