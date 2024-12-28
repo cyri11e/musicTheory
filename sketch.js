@@ -6,7 +6,6 @@ function setup() {
   colorMode(HSB); // Définir le mode de couleur sur HSB
   background(220);
   textSize(12);
-  noLoop();
 
   drawHSBGradient(0, 0, width, 50);
 
@@ -172,6 +171,9 @@ function draw() {
   background(220);
   drawHSBGradient(0, 0, width, 50);
   vScales.forEach(vScale => vScale.draw());
+  if (vScales.some(vScale => vScale.transitioning || vScale.appearing)) {
+    redraw();
+  }
 }
 
 function mousePressed() {

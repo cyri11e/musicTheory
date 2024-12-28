@@ -10,6 +10,11 @@ class VScale {
     this.startY = 300;
     this.circularMode = false;
     this.bubblePositions = [];
+    this.transitionProgress = 0;
+    this.transitioning = false;
+    this.previousMode = false; // Ajouter une variable pour suivre l'état précédent
+    this.appearing = true; // Ajouter une variable pour l'animation d'apparition
+    this.appearanceProgress = 0; // Ajouter une variable pour suivre la progression de l'apparition
   }
 
   createBubbles() {
@@ -24,7 +29,7 @@ class VScale {
   }
 
   calculateBubblePosition(index) {
-    if (this.circularMode) {
+    if (this.circularMode || this.transitioning) {
       let angle = TWO_PI * ((index + 9) % 12 / 12); // Placer la tonique en haut
       let radius = this.size * 6 / PI; // Ajuster le rayon pour que les bulles se touchent
       let x = this.startX + cos(angle) * radius;
@@ -52,6 +57,21 @@ class VScale {
     this.bubblePositions = [];
     this.bubbles.forEach((bubble, index) => {
       let { x, y } = this.calculateBubblePosition(index);
+      if (this.transitioning) {
+        let linearX = this.startX + index * this.size;
+        let linearY = this.startY;
+        if (this.previousMode) {
+          x = lerp(x, linearX, this.transitionProgress);
+          y = lerp(y, linearY, this.transitionProgress);
+        } else {
+          x = lerp(linearX, x, this.transitionProgress);
+          y = lerp(linearY, y, this.transitionProgress);
+        }
+      }
+      if (this.appearing) {
+        x = lerp(this.startX, x, this.appearanceProgress);
+        y = lerp(this.startY, y, this.appearanceProgress);
+      }
       this.bubblePositions.push({ x, y });
       push();
       fill(bubble.color);
@@ -64,6 +84,23 @@ class VScale {
       text(bubble.degree, x, y);
       pop();
     });
+
+    if (this.transitioning) {
+      this.transitionProgress += 0.05; // Augmenter la vitesse de progression
+      if (this.transitionProgress >= 1) {
+        this.transitioning = false;
+        this.transitionProgress = 0;
+        this.circularMode = !this.circularMode;
+      }
+    }
+
+    if (this.appearing) {
+      this.appearanceProgress += 0.02;
+      if (this.appearanceProgress >= 1) {
+        this.appearing = false;
+        this.appearanceProgress = 0;
+      }
+    }
   }
 
   startDrag(x, y) {
@@ -88,7 +125,9 @@ class VScale {
   }
 
   toggleMode() {
-    this.circularMode = !this.circularMode;
+    this.transitioning = true;
+    this.transitionProgress = 0;
+    this.previousMode = this.circularMode; // Mettre à jour l'état précédent
   }
 }
 
