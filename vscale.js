@@ -12,26 +12,10 @@ class VScale {
 
   createBubbles() {
     let bubbles = [];
-    const degreeColors = {
-      "1": color(0, 50, 100),
-      "♭2": color(30, 50, 100),
-      "2": color(60, 50, 100),
-      "♭3": color(90, 50, 100),
-      "3": color(120, 50, 100),
-      "4": color(150, 50, 100),
-      "♯4": color(180, 50, 100),
-      "♭5": color(210, 50, 100),
-      "5": color(240, 50, 100),
-      "♭6": color(270, 50, 100),
-      "6": color(300, 50, 100),
-      "♭7": color(330, 50, 100),
-      "7": color(360, 50, 100)
-    };
-
     for (let i = 0; i < 12; i++) {
       let isInScale = this.scale.semitones.includes(i);
+      let bubbleColor = isInScale ? color(i * 30, 70, 100) : color(200);
       let degree = isInScale ? this.scale.degrees[this.scale.semitones.indexOf(i)] : '';
-      let bubbleColor = isInScale ? degreeColors[degree] : color(200);
       bubbles.push({ position: i, color: bubbleColor, degree: degree, isInScale: isInScale });
     }
     return bubbles;
